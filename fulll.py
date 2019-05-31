@@ -1,36 +1,33 @@
 import autosklearn.regression
 from sklearn.model_selection import train_test_split
-
 import pandas as pd
-import sklearn.metrics
+import numpy as np
 #TODO install these packages
-rawdata=pd.read_excel('dataformodel.xlsx')#输入要读入文件的路径
+rawdata=pd.read_excel('rawdata.xlsx')#输入要读入文件的路径
 Y=rawdata[['cpue']]#单引号内写要预测的变量名
+#由于这里用的是连续数据，默认进行对数变换，离散数据可以去掉这里
+Y=np.log10(Y+1)
 X=rawdata[['lon','lat','sst','chla','doy']]#单引号内输入要使用的变量名
 x_train,x_test,y_train,y_test=train_test_split(X,Y,test_size=0.3,random_state=7)#test size代表了测试集在整个数据集中的占比
-# x_train=pd.read_csv('xtrain.csv')[['lon','lat','sst','chla','doy']]
-# y_train=pd.read_csv('ytrain.csv')[['cpue']]
-# x_test=pd.read_csv('xtest.csv')[['lon','lat','sst','chla','doy']]
-# y_test=pd.read_csv('ytest.csv')[['cpue']]
+
 
 #TODO add other variables and auto detect variables
 automl = autosklearn.regression.AutoSklearnRegressor(
-    include_estimators=["random_forest","xgradient_boosting",],#TODO which model
+    include_estimators=["random_forest"],#这里只放了几个我认为效果比较好的模型，模型种类参见https://github.com/automl/auto-sklearn/tree/master/autosklearn/pipeline/components/regression
     exclude_estimators=None,
     include_preprocessors=["no_preprocessing", ],
     exclude_preprocessors=None,
     resampling_strategy='cv',
-    resampling_strategy_arguments={'folds': 10},
+    resampling_strategy_arguments={'folds': 10},#这里选了10 fold cross validation
     )
 automl.fit(x_train, y_train.values.ravel())
-print(automl.show_models())
+print(automl.cv_results_)
+automl.sprint_statistics()
+automl.show_models()
 automl.refit(x_train, y_train.values.ravel())
-y_pre = automl.predict(x_test)#TODO add this result to original dataset
-print("R2 score", sklearn.metrics.accuracy_score(y_test.values.ravel(), y_pre))
-df=pd.DataFrame(y_pre)
-#TODO print different modle result(alt,but remain a button)
-#import  xlsxwriter
-#xls=xlsxwriter.workbook('pre')
-#sht1=xls.add_worksheet()
-#sht1.write(df)
-df.to_csv('pre.csv')
+y_pre = automl.predict(X)#这里X是你想要的预测结果对应的自变量，我这里在原来的结果上进行预测
+ypre=np.power(y_pre,10)-1#变换回来
+ypre=pd.DataFrame(ypre)
+result=pd.concat([rawdata,ypre])
+result.to_excel('rawdata.xlsx')
+#ypre.to_excel(writer,'Sheet1',startcol=rawdata.shape[0]+1)
