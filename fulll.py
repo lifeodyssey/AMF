@@ -2,7 +2,7 @@ import autosklearn.regression
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
-#TODO install these packages
+
 rawdata=pd.read_excel('rawdata.xlsx')#输入要读入文件的路径
 Y=rawdata[['cpue']]#单引号内写要预测的变量名
 #由于这里用的是连续数据，默认进行对数变换，离散数据可以去掉这里
@@ -21,7 +21,7 @@ automl = autosklearn.regression.AutoSklearnRegressor(
     resampling_strategy_arguments={'folds': 10},#这里选了10 fold cross validation
     )
 automl.fit(x_train, y_train.values.ravel())
-print(automl.cv_results_)
+
 automl.sprint_statistics()
 automl.show_models()
 automl.refit(x_train, y_train.values.ravel())
@@ -30,4 +30,3 @@ ypre=np.power(10,ypre)-1#变换回来
 ypre=pd.DataFrame(ypre)
 result=pd.concat([rawdata,ypre])
 result.to_excel('result.xlsx')
-#ypre.to_excel(writer,'Sheet1',startcol=rawdata.shape[0]+1)
