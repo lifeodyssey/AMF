@@ -13,7 +13,7 @@ x_train,x_test,y_train,y_test=train_test_split(X,Y,test_size=0.3,random_state=7)
 
 #TODO add other variables and auto detect variables
 automl = autosklearn.regression.AutoSklearnRegressor(
-    include_estimators=["random_forest"],#这里只放了几个我认为效果比较好的模型，模型种类参见https://github.com/automl/auto-sklearn/tree/master/autosklearn/pipeline/components/regression
+    include_estimators=["random_forest","decision_tree","gradient_boosting","xgradient_boosting"],#这里只放了几个我认为效果比较好的模型，模型种类参见https://github.com/automl/auto-sklearn/tree/master/autosklearn/pipeline/components/regression
     exclude_estimators=None,
     include_preprocessors=["no_preprocessing", ],
     exclude_preprocessors=None,
@@ -26,8 +26,8 @@ automl.sprint_statistics()
 automl.show_models()
 automl.refit(x_train, y_train.values.ravel())
 y_pre = automl.predict(X)#这里X是你想要的预测结果对应的自变量，我这里在原来的结果上进行预测
-ypre=np.power(y_pre,10)-1#变换回来
+ypre=np.power(10,ypre)-1#变换回来
 ypre=pd.DataFrame(ypre)
 result=pd.concat([rawdata,ypre])
-result.to_excel('rawdata.xlsx')
+result.to_excel('result.xlsx')
 #ypre.to_excel(writer,'Sheet1',startcol=rawdata.shape[0]+1)
